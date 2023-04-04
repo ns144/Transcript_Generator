@@ -1,0 +1,14 @@
+tmp.mov
+tmp.mp4
+final.mp4
+test.mov
+ffmpeg.exe
+ffprobe.exe
+api/render/__pycache__/*
+api/timecode/__pycache__/*
+api/transcribe/__pycache__/*
+__pycache__/*
+helper/__pycache__/*
+ffmpeg-2022-10-02-git-5f02a261a2-full_build.7z
+tmp_v.mp4
+env/*
