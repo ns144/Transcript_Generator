@@ -1,0 +1,14 @@
+dramatiq[rabbitmq]
+docx==0.2.4
+deepl
+fastapi==0.85.1
+ffmpeg==1.4
+ffmpeg-python
+python_docx==0.8.11
+spacy
+whisper==1.0
+uvicorn
+mariadb
+importlib-metadata==4.13.0
+pillow
+customtkinter
