@@ -29,5 +29,8 @@ CALL tools/crawl_ffmpeg.bat
 CALL tools/setup_venv.bat
 CALL tools/update_pip.bat
 CALL tools/install_whisper.bat
+::CALL tools/install_whisperx.bat
+::CALL tools/install_torch.bat
+CALL tools/install_pyannote.bat
 CALL tools/install_requirements.bat
 CALL tools/install_spacy.bat
