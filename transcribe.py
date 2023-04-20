@@ -58,6 +58,9 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
       print("SPEAKER DIARIZATION")
       #speaker_diarization(result["segments"], sourcefile, num_speakers)
       speaker_segments = speaker_diarization(sourcefile)
+      print(speaker_segments)
+      speaker_segments = condenseSpeakers(speaker_segments)
+      print(speaker_segments)
       transcribed_segments = render_segments(sourcefile, speaker_segments, lang)
 
       for segment in transcribed_segments:
@@ -97,7 +100,7 @@ def speaker_diarization(sourcefile):
   pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token="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")
 
   if sourcefile[-3:] != 'wav':
-      subprocess.call(['ffmpeg', '-i', sourcefile, 'audio.wav', '-y'])
+      subprocess.call(['ffmpeg', '-i', sourcefile,"-ac", "1", 'audio.wav', '-y'])
       sourcefile = 'audio.wav'
 
   # sourcefile = 'audio.wav'
@@ -148,6 +151,8 @@ def render_segments(sourcefile, speaker_segments, lang):
         os.remove(segmentName)
         print("DONE RENDERING SPEAKER SEGMENT")
 
+        languages = {}
+
     return transcribed_segments
 
 def get_language(segmentName, model, lang):
@@ -165,7 +170,19 @@ def get_language(segmentName, model, lang):
     #print(f"Detected language: {max(probs, key=probs.get)}")
     return max(languages, key=languages.get)
     
+def condenseSpeakers(speaker_segments):
+    condensedSpeakers = []
+    for segment in speaker_segments:
+        if len(condensedSpeakers) !=0 and condensedSpeakers[-1].speaker == segment.speaker:
+            latest_segment = condensedSpeakers[-1]
+            latest_segment.out_point = segment.out_point
 
+            condensedSpeakers[-1] = latest_segment
+
+        else:
+            condensedSpeakers.append(segment)
+
+    return condensedSpeakers
 
 #def speaker_diarization(segments, sourcefile, num_speakers):
 #    import pyannote.audio
