@@ -10,6 +10,7 @@ from speaker_segment import speaker_segment
 from speaker_segment import transcribed_segment
 import torch
 import os
+from pyannote.audio import Pipeline
 
 def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False):
     
@@ -58,9 +59,7 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
       print("SPEAKER DIARIZATION")
       #speaker_diarization(result["segments"], sourcefile, num_speakers)
       speaker_segments = speaker_diarization(sourcefile)
-      print(speaker_segments)
       speaker_segments = condenseSpeakers(speaker_segments)
-      print(speaker_segments)
       transcribed_segments = render_segments(sourcefile, speaker_segments, lang)
 
       for segment in transcribed_segments:
@@ -96,9 +95,9 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
 #    return result_aligned
 
 def speaker_diarization(sourcefile):
-  from pyannote.audio import Pipeline
+  
   pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token="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")
-
+  pipeline.to("cuda")
   if sourcefile[-3:] != 'wav':
       subprocess.call(['ffmpeg', '-i', sourcefile,"-ac", "1", 'audio.wav', '-y'])
       sourcefile = 'audio.wav'
@@ -172,15 +171,33 @@ def get_language(segmentName, model, lang):
     
 def condenseSpeakers(speaker_segments):
     condensedSpeakers = []
-    for segment in speaker_segments:
-        if len(condensedSpeakers) !=0 and condensedSpeakers[-1].speaker == segment.speaker:
-            latest_segment = condensedSpeakers[-1]
-            latest_segment.out_point = segment.out_point
 
-            condensedSpeakers[-1] = latest_segment
+    latest_timestamp = 0
+
+    for segment in speaker_segments:
+
+        if len(condensedSpeakers) !=0:
+
+            if condensedSpeakers[-1].out_point > latest_timestamp:
+                latest_timestamp = condensedSpeakers[-1].out_point
+
+            if segment.in_point > latest_timestamp:
+
+                if condensedSpeakers[-1].speaker == segment.speaker and condensedSpeakers[-1].out_point == latest_timestamp:
+                    latest_segment = condensedSpeakers[-1]
+                    latest_segment.out_point = segment.out_point
+
+                    condensedSpeakers[-1] = latest_segment
+
+                else:
+                    condensedSpeakers.append(segment)
+
+            else:
+                condensedSpeakers.append(segment)
 
         else:
             condensedSpeakers.append(segment)
+
 
     return condensedSpeakers
 

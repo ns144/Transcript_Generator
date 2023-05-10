@@ -1,0 +1,51 @@
+Looking in indexes: https://pypi.org/simple, https://download.pytorch.org/whl/cu117
+Collecting torch==1.13.1+cu117
+  Downloading https://download.pytorch.org/whl/cu117/torch-1.13.1%2Bcu117-cp39-cp39-win_amd64.whl (2255.6 MB)
+     ---------------------------------------- 2.3/2.3 GB 31.2 MB/s eta 0:00:00
+Collecting torchvision
+  Downloading https://download.pytorch.org/whl/cu117/torchvision-0.15.1%2Bcu117-cp39-cp39-win_amd64.whl (4.9 MB)
+     ---------------------------------------- 4.9/4.9 MB 28.7 MB/s eta 0:00:00
+Collecting torchaudio
+  Downloading https://download.pytorch.org/whl/cu117/torchaudio-2.0.1%2Bcu117-cp39-cp39-win_amd64.whl (2.5 MB)
+     ---------------------------------------- 2.5/2.5 MB 31.0 MB/s eta 0:00:00
+Collecting typing-extensions (from torch==1.13.1+cu117)
+  Downloading typing_extensions-4.5.0-py3-none-any.whl (27 kB)
+Collecting numpy (from torchvision)
+  Downloading numpy-1.24.2-cp39-cp39-win_amd64.whl (14.9 MB)
+     --------------------------------------- 14.9/14.9 MB 31.2 MB/s eta 0:00:00
+Collecting requests (from torchvision)
+  Downloading requests-2.28.2-py3-none-any.whl (62 kB)
+     ---------------------------------------- 62.8/62.8 kB ? eta 0:00:00
+INFO: pip is looking at multiple versions of torchvision to determine which version is compatible with other requirements. This could take a while.
+Collecting torchvision
+  Downloading torchvision-0.15.1-cp39-cp39-win_amd64.whl (1.2 MB)
+     ---------------------------------------- 1.2/1.2 MB 25.8 MB/s eta 0:00:00
+  Downloading https://download.pytorch.org/whl/cu117/torchvision-0.15.0%2Bcu117-cp39-cp39-win_amd64.whl (4.9 MB)
+     ---------------------------------------- 4.9/4.9 MB 31.4 MB/s eta 0:00:00
+  Downloading https://download.pytorch.org/whl/cu117/torchvision-0.14.1%2Bcu117-cp39-cp39-win_amd64.whl (4.8 MB)
+     ---------------------------------------- 4.8/4.8 MB 30.8 MB/s eta 0:00:00
+Collecting pillow!=8.3.*,>=5.3.0 (from torchvision)
+  Downloading Pillow-9.5.0-cp39-cp39-win_amd64.whl (2.5 MB)
+     ---------------------------------------- 2.5/2.5 MB 32.0 MB/s eta 0:00:00
+INFO: pip is looking at multiple versions of torchaudio to determine which version is compatible with other requirements. This could take a while.
+Collecting torchaudio
+  Downloading torchaudio-2.0.1-cp39-cp39-win_amd64.whl (2.1 MB)
+     ---------------------------------------- 2.1/2.1 MB 27.2 MB/s eta 0:00:00
+  Downloading https://download.pytorch.org/whl/cu117/torchaudio-2.0.0%2Bcu117-cp39-cp39-win_amd64.whl (2.5 MB)
+     ---------------------------------------- 2.5/2.5 MB 31.0 MB/s eta 0:00:00
+  Downloading https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2Bcu117-cp39-cp39-win_amd64.whl (2.3 MB)
+     ---------------------------------------- 2.3/2.3 MB 29.2 MB/s eta 0:00:00
+Collecting charset-normalizer<4,>=2 (from requests->torchvision)
+  Downloading charset_normalizer-3.1.0-cp39-cp39-win_amd64.whl (97 kB)
+     ---------------------------------------- 97.1/97.1 kB ? eta 0:00:00
+Collecting idna<4,>=2.5 (from requests->torchvision)
+  Downloading https://download.pytorch.org/whl/idna-3.4-py3-none-any.whl (61 kB)
+     ---------------------------------------- 61.5/61.5 kB ? eta 0:00:00
+Collecting urllib3<1.27,>=1.21.1 (from requests->torchvision)
+  Downloading urllib3-1.26.15-py2.py3-none-any.whl (140 kB)
+     ---------------------------------------- 140.9/140.9 kB ? eta 0:00:00
+Collecting certifi>=2017.4.17 (from requests->torchvision)
+  Downloading https://download.pytorch.org/whl/certifi-2022.12.7-py3-none-any.whl (155 kB)
+     ---------------------------------------- 155.3/155.3 kB ? eta 0:00:00
+Installing collected packages: urllib3, typing-extensions, pillow, numpy, idna, charset-normalizer, certifi, torch, requests, torchvision, torchaudio
+Successfully installed certifi-2022.12.7 charset-normalizer-3.1.0 idna-3.4 numpy-1.24.2 pillow-9.5.0 requests-2.28.2 torch-1.13.1+cu117 torchaudio-0.13.1+cu117 torchvision-0.14.1+cu117 typing-extensions-4.5.0 urllib3-1.26.15

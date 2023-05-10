@@ -15,6 +15,7 @@ def speakersToDoc(speaker_segments:list,translatedSegments:list,scriptFilename:s
     p = document.add_paragraph('File:  ' + Path(sourcefile).name)
 
     latest_timestamp = 0
+    latest_index = 0
 
     for segment in speaker_segments:
         
@@ -57,26 +58,30 @@ def speakersToDoc(speaker_segments:list,translatedSegments:list,scriptFilename:s
         #translation_size = len(translatedSegments)
         #translationAvailable = translation_size > 0
 
-        for index, segment in enumerate(segment.segments):
+        
+
+        for index, s in enumerate(segment.segments):
 
             #start = latest_timestamp+format_timestamp(segment['start'],True,':')
-            start = format_timestamp(segment['start'],True,':')
+            start = format_timestamp(s['start'],True,':')
 
             #Add translated text
             #if (translationAvailable and index <= translation_size-1):
             #    trans_text = translatedSegments[index]['text']
             
-            end = format_timestamp(segment['end'],True,':')
+            end = format_timestamp(s['end'],True,':')
             
             row_cells = table.add_row().cells
             
-            row_cells[0].text = str(index + 1)
+            row_cells[0].text = str(latest_index + index + 1)
             row_cells[0].width = Mm(9.4)
             row_cells[1].text = start + " - " + end
-            row_cells[2].text = segment['text']
+            row_cells[2].text = s['text']
             row_cells[3].text = trans_text
 
             trans_text = ""
+
+        latest_index += len(segment.segments)
 
         
 

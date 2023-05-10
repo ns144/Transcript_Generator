@@ -1,0 +1,32 @@
+Looking in indexes: https://pypi.org/simple, https://download.pytorch.org/whl/cu117
+Collecting torch==1.13.1+cu117
+  Downloading https://download.pytorch.org/whl/cu117/torch-1.13.1%2Bcu117-cp39-cp39-win_amd64.whl (2255.6 MB)
+     ---------------------------------------- 2.3/2.3 GB 17.7 MB/s eta 0:00:00
+Requirement already satisfied: torchvision in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (0.14.1+cu117)
+Requirement already satisfied: torchaudio in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (2.0.1)
+Requirement already satisfied: typing-extensions in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from torch==1.13.1+cu117) (4.5.0)
+Requirement already satisfied: numpy in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from torchvision) (1.23.5)
+Requirement already satisfied: requests in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from torchvision) (2.28.2)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from torchvision) (9.5.0)
+INFO: pip is looking at multiple versions of torchaudio to determine which version is compatible with other requirements. This could take a while.
+Collecting torchaudio
+  Downloading https://download.pytorch.org/whl/cu117/torchaudio-2.0.1%2Bcu117-cp39-cp39-win_amd64.whl (2.5 MB)
+     ---------------------------------------- 2.5/2.5 MB 19.6 MB/s eta 0:00:00
+  Downloading https://download.pytorch.org/whl/cu117/torchaudio-2.0.0%2Bcu117-cp39-cp39-win_amd64.whl (2.5 MB)
+     ---------------------------------------- 2.5/2.5 MB 22.3 MB/s eta 0:00:00
+  Downloading https://download.pytorch.org/whl/cu117/torchaudio-0.13.1%2Bcu117-cp39-cp39-win_amd64.whl (2.3 MB)
+     ---------------------------------------- 2.3/2.3 MB 18.2 MB/s eta 0:00:00
+Requirement already satisfied: charset-normalizer<4,>=2 in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from requests->torchvision) (3.1.0)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from requests->torchvision) (3.4)
+Requirement already satisfied: urllib3<1.27,>=1.21.1 in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from requests->torchvision) (1.26.15)
+Requirement already satisfied: certifi>=2017.4.17 in c:\users\nikolass\documents\test\ns144_transcript_generator\env\lib\site-packages (from requests->torchvision) (2022.12.7)
+Installing collected packages: torch, torchaudio
+  Attempting uninstall: torch
+    Found existing installation: torch 2.0.0
+    Uninstalling torch-2.0.0:
+      Successfully uninstalled torch-2.0.0
+  Attempting uninstall: torchaudio
+    Found existing installation: torchaudio 2.0.1
+    Uninstalling torchaudio-2.0.1:
+      Successfully uninstalled torchaudio-2.0.1
+Successfully installed torch-1.13.1+cu117 torchaudio-0.13.1+cu117
