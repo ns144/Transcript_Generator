@@ -17,39 +17,46 @@ def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:
     latest_timestamp = 0
     latest_index = 0
 
+    table = document.add_table(rows=1, cols=4)
+    table.style = document.styles['Table Grid']
+    hdr_cells = table.rows[0].cells
+
+    paragraph = hdr_cells[0].paragraphs[0]
+    run = paragraph.add_run('ID')
+    run.bold = True
+    hdr_cells[0].width = Mm(9.4)
+
+    paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
+    paragraph = hdr_cells[1].paragraphs[0]
+    run = paragraph.add_run('Timecode')
+    run.bold = True
+    hdr_cells[1].width = Mm(30)
+
+    paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
+    paragraph = hdr_cells[2].paragraphs[0]
+    run = paragraph.add_run('Text')
+    hdr_cells[2].width = Mm(50)
+    run.bold = True
+
+    paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
+    paragraph = hdr_cells[3].paragraphs[0]
+    run = paragraph.add_run('Translation')
+    hdr_cells[3].width = Mm(50)
+    run.bold = True
+    paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
+
     for index_speaker,speaker in enumerate(speaker_segments):
 
         if len(speaker.segments) != 0:
             
-            speaker_name = document.add_paragraph(speaker.speaker)
+            #speaker_name = document.add_paragraph(speaker.speaker)
 
-            table = document.add_table(rows=1, cols=4)
-            table.style = document.styles['Table Grid']
-            hdr_cells = table.rows[0].cells
-
-            paragraph = hdr_cells[0].paragraphs[0]
-            run = paragraph.add_run('ID')
+            speaker_name = table.add_row()
+            run = speaker_name.cells[0].paragraphs[0].add_run(speaker.speaker)
+            speaker_name.cells[0].merge(speaker_name.cells[3])
+            speaker_name.cells[0].paragraphs[0].alignment=WD_ALIGN_PARAGRAPH.CENTER
             run.bold = True
-            hdr_cells[0].width = Mm(9.4)
-            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
-            paragraph = hdr_cells[1].paragraphs[0]
-            run = paragraph.add_run('Timecode')
-            run.bold = True
-            hdr_cells[1].width = Mm(30)
-            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
-
-            paragraph = hdr_cells[2].paragraphs[0]
-            run = paragraph.add_run('Text')
-            hdr_cells[2].width = Mm(50)
-            run.bold = True
-            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
-
-            paragraph = hdr_cells[3].paragraphs[0]
-            run = paragraph.add_run('Translation')
-            hdr_cells[3].width = Mm(50)
-            run.bold = True
-            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
             trans_text = ""
             translation = translated_segments[index_speaker]

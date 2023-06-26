@@ -14,47 +14,13 @@ import os
 from pyannote.audio import Pipeline
 import copy
 
-def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=True, translateTargetLanguage="en-gb", deeplKey=""):
+def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=False, translateTargetLanguage="en-gb", deeplKey=""):
     
     print("GPU: " + str(torch.cuda.is_available()))
     print("Torch version:" + str(torch.__version__))
     #print("Why tough? "+ str(torch.zeros(1).cuda()))
 
     path = Path(sourcefile)
-
-    if write_srt:
-        #load compact model if possible
-        if (not complex):
-            #if English, we can load the smaller model
-            if (lang=='en'): 
-                model = whisper.load_model("base.en")    
-            else:
-                model = whisper.load_model("base")
-        else:
-                model = whisper.load_model("medium")
-
-        result = model.transcribe(sourcefile, language=lang)
-
-        #In order to make translation better and make work easier for the editors we should group more segments into one segment.
-        summarized_segments = condenseSegments(result['segments'], 1)
-
-        #save SRT
-        targetfile = path.with_suffix('.srt')
-        name = targetfile.name
-        directory = targetfile.parent
-        print("Saving SRT: " + str(targetfile))
-
-        segments_as_dict = dict()
-        segments_as_dict["segments"] = summarized_segments
-        print(summarized_segments)
-        options = dict()
-        options["max_line_width"] = None
-        options["max_line_count"] = None
-        options["highlight_words"] = False
-        writer = get_writer("srt", directory)
-        writer(segments_as_dict, targetfile, options)
-
-        print("SRT done...")
 
 
     if speakerDiarization:
