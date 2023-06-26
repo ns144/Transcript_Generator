@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 
-def speakersToDoc(speaker_segments:list,translatedSegments:list,scriptFilename:str, sourcefile=""):
+def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:str, sourcefile="", translated=False):
     document = Document()
     document.sections[0].page_width = Mm(210)
     document.sections[0].page_height = Mm(297)
@@ -17,71 +17,78 @@ def speakersToDoc(speaker_segments:list,translatedSegments:list,scriptFilename:s
     latest_timestamp = 0
     latest_index = 0
 
-    for segment in speaker_segments:
-        
-        speaker = document.add_paragraph(segment.speaker)
+    for index_speaker,speaker in enumerate(speaker_segments):
 
-        table = document.add_table(rows=1, cols=4)
-        table.style = document.styles['Table Grid']
-        hdr_cells = table.rows[0].cells
-        
-        paragraph = hdr_cells[0].paragraphs[0]
-        run = paragraph.add_run('ID')
-        run.bold = True
-        hdr_cells[0].width = Mm(9.4)
-        paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
-        
-        paragraph = hdr_cells[1].paragraphs[0]
-        run = paragraph.add_run('Timecode')
-        run.bold = True
-        hdr_cells[1].width = Mm(30)
-        paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
-        
-        paragraph = hdr_cells[2].paragraphs[0]
-        run = paragraph.add_run('Text')
-        hdr_cells[2].width = Mm(50)
-        run.bold = True
-        paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
-        
-        paragraph = hdr_cells[3].paragraphs[0]
-        run = paragraph.add_run('Translation')
-        hdr_cells[3].width = Mm(50)
-        run.bold = True
-        paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
+        if len(speaker.segments) != 0:
             
-        trans_text = ""
-        start = 0
-        end = 0
+            speaker_name = document.add_paragraph(speaker.speaker)
 
-        
+            table = document.add_table(rows=1, cols=4)
+            table.style = document.styles['Table Grid']
+            hdr_cells = table.rows[0].cells
 
-        #translation_size = len(translatedSegments)
-        #translationAvailable = translation_size > 0
+            paragraph = hdr_cells[0].paragraphs[0]
+            run = paragraph.add_run('ID')
+            run.bold = True
+            hdr_cells[0].width = Mm(9.4)
+            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
-        
+            paragraph = hdr_cells[1].paragraphs[0]
+            run = paragraph.add_run('Timecode')
+            run.bold = True
+            hdr_cells[1].width = Mm(30)
+            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
-        for index, s in enumerate(segment.segments):
+            paragraph = hdr_cells[2].paragraphs[0]
+            run = paragraph.add_run('Text')
+            hdr_cells[2].width = Mm(50)
+            run.bold = True
+            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
-            #start = latest_timestamp+format_timestamp(segment['start'],True,':')
-            start = format_timestamp(s['start'],True,':')
-
-            #Add translated text
-            #if (translationAvailable and index <= translation_size-1):
-            #    trans_text = translatedSegments[index]['text']
-            
-            end = format_timestamp(s['end'],True,':')
-            
-            row_cells = table.add_row().cells
-            
-            row_cells[0].text = str(latest_index + index + 1)
-            row_cells[0].width = Mm(9.4)
-            row_cells[1].text = start + " - " + end
-            row_cells[2].text = s['text']
-            row_cells[3].text = trans_text
+            paragraph = hdr_cells[3].paragraphs[0]
+            run = paragraph.add_run('Translation')
+            hdr_cells[3].width = Mm(50)
+            run.bold = True
+            paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
             trans_text = ""
+            translation = translated_segments[index_speaker]
+            start = 0
+            end = 0
 
-        latest_index += len(segment.segments)
+
+
+            #translation_size = len(translatedSegments)
+            #translationAvailable = translation_size > 0
+
+
+
+            for index, s in enumerate(speaker.segments):
+
+                #start = latest_timestamp+format_timestamp(segment['start'],True,':')
+                start = format_timestamp(s['start'],True,':')
+
+                #Add translated text
+                #if (translationAvailable and index <= translation_size-1):
+                #    trans_text = translatedSegments[index]['text']
+
+                end = format_timestamp(s['end'],True,':')
+
+                row_cells = table.add_row().cells
+
+                row_cells[0].text = str(latest_index + index + 1)
+                row_cells[0].width = Mm(9.4)
+                row_cells[1].text = start + " - " + end
+                row_cells[2].text = s['text']
+
+                if translated:
+                    trans_text = translation.segments[index]['text']
+
+                row_cells[3].text = trans_text
+
+                trans_text = ""
+
+            latest_index += len(speaker.segments)
 
         
 

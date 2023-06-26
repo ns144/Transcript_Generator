@@ -4,6 +4,7 @@ import subprocess
 import whisper
 from whisper.utils import get_writer
 from transcribe_helper import condenseSegments
+from transcribe_helper import translateSegments
 from script_helper import transcriptToDoc 
 from script_helper import speakersToDoc
 from speaker_segment import speaker_segment
@@ -11,8 +12,9 @@ from speaker_segment import transcribed_segment
 import torch
 import os
 from pyannote.audio import Pipeline
+import copy
 
-def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False):
+def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=True, translateTargetLanguage="en-gb", deeplKey=""):
     
     print("GPU: " + str(torch.cuda.is_available()))
     print("Torch version:" + str(torch.__version__))
@@ -44,55 +46,59 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
 
         segments_as_dict = dict()
         segments_as_dict["segments"] = summarized_segments
+        print(summarized_segments)
+        options = dict()
+        options["max_line_width"] = None
+        options["max_line_count"] = None
+        options["highlight_words"] = False
         writer = get_writer("srt", directory)
-        writer(segments_as_dict, targetfile)
+        writer(segments_as_dict, targetfile, options)
 
         print("SRT done...")
 
-    #del model
-    #torch.cuda.empty_cache()
-    #print("IMPROVING WORD TIMESTAMPS")
-    # Improve Timestamps
-    #resultwhisperx = improve_timestamps(result, sourcefile)
 
     if speakerDiarization:
-      print("SPEAKER DIARIZATION")
-      #speaker_diarization(result["segments"], sourcefile, num_speakers)
-      speaker_segments = speaker_diarization(sourcefile)
-      speaker_segments = condenseSpeakers(speaker_segments)
-      transcribed_segments = render_segments(sourcefile, speaker_segments, lang)
+        print("SPEAKER DIARIZATION")
+        speaker_segments = speaker_diarization(sourcefile)
+        speaker_segments = condenseSpeakers(speaker_segments)
+        transcribed_segments = render_segments(sourcefile, speaker_segments, lang)
 
-      for segment in transcribed_segments:
-          print("This segment was spoken by: "+segment.speaker)
-          print("And this is what he said: "+ str(segment.segments))
+        #save SRT
+        targetfile = path.with_suffix('.srt')
+        name = targetfile.name
+        directory = targetfile.parent
+        print("Saving SRT: " + str(targetfile))
+        translated_segments = copy.deepcopy(transcribed_segments)
 
-      scriptFilename = str(path.with_suffix('.docx'))
-      print("Writing Script DOCX: " + str(scriptFilename))
-      scriptFilename = speakersToDoc(transcribed_segments, [], scriptFilename, sourcefile)
-      print("DONE writing script DOCX: " + scriptFilename)
+        srt_segments = []
+        if translate:
+            translated_segments = translateSegments(translated_segments, translateTargetLanguage=translateTargetLanguage, deeplKey=deeplKey)
+            for segment in translated_segments:
+                for s in segment.segments:
+                    srt_segments.append(s)
+        else:
+            for segment in transcribed_segments:
+                for s in segment.segments:
+                    srt_segments.append(s)
+
+
+        segments_as_dict = dict()
+        segments_as_dict["segments"] = srt_segments
+
+        options = dict()
+        options["max_line_width"] = None
+        options["max_line_count"] = None
+        options["highlight_words"] = False
+        writer = get_writer("srt", directory)
+        writer(segments_as_dict, targetfile, options)
+        print("DONE writing SRT: " + str(targetfile))
+        if createDOCX:
+            scriptFilename = str(path.with_suffix('.docx'))
+            print("Writing Script DOCX: " + str(scriptFilename))
+            scriptFilename = speakersToDoc(speaker_segments=transcribed_segments, translated_segments=translated_segments, scriptFilename=scriptFilename, sourcefile=sourcefile, translated=translate)
+            print("DONE writing script DOCX: " + scriptFilename)
 
     print("SPEAKER DIARIZATION done...")
-    
-    #if createDOCX:
-    #    #save DOCX
-    #    scriptFilename = str(path.with_suffix('.docx'))
-    #    print("Writing Script DOCX: " + str(scriptFilename))
-#
-    #    scriptFilename = transcriptToDoc(summarized_segments, [], scriptFilename, sourcefile)
-    #    print("DONE writing script DOCX...")
-
-
-
-#def improve_timestamps(whisper_result, sourcefile):
-#    device = "cpu"
-#    alignment_model, metadata = whisperx.load_align_model(language_code=whisper_result["language"], device=device)
-#    result_aligned = whisperx.align(whisper_result["segments"], alignment_model, metadata, sourcefile, device)
-#
-#    # clear gpu vram
-#    del alignment_model
-#    torch.cuda.empty_cache()
-#
-#    return result_aligned
 
 def speaker_diarization(sourcefile):
   
@@ -123,7 +129,11 @@ def speaker_diarization(sourcefile):
 
 def render_segments(sourcefile, speaker_segments, lang):
     print("TRANSCRIBING SEGMENTS")
-    model = whisper.load_model("base")
+    #load compact model if possible
+    if (not complex):
+        model = whisper.load_model("base")
+    else:
+        model = whisper.load_model("medium")
 
     transcribed_segments = []
 

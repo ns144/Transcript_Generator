@@ -63,6 +63,12 @@ class App(customtkinter.CTk):
         button = customtkinter.CTkButton(master=frame, text="Get Files", command=self.filenames_function)
         button.grid(pady=20, padx=10)
 
+        self.deepl_label = customtkinter.CTkLabel(master=frame, text="Deepl Key", font=("Roboto", 14))
+        self.deepl_label.grid(pady=(10,0), padx=10)
+
+        self.deeplKey_entry = customtkinter.CTkEntry(master=frame, placeholder_text="Your Deepl API Key")
+        self.deeplKey_entry.grid(pady=(10,20), padx=10)
+
         row02 = customtkinter.CTkFrame(master=self)
         row02.grid_rowconfigure(0, weight=1)
         row02.columnconfigure(4, weight=1)
@@ -81,9 +87,9 @@ class App(customtkinter.CTk):
         self.check_docx = customtkinter.CTkCheckBox(master=row02, text="Generate Docx", variable=self.generate_docx, onvalue=True, offvalue=False)
         self.check_docx.grid(row=0, column=3, pady=12, padx=10)
 
-        self.speaker_diarization = tkinter.BooleanVar(False)
-        self.check_docx = customtkinter.CTkCheckBox(master=row02, text="Speaker Diarization", variable=self.speaker_diarization, onvalue=True, offvalue=False)
-        self.check_docx.grid(row=0, column=4, pady=12, padx=10)
+        self.deepl_translate = tkinter.BooleanVar(False)
+        self.check_deepl = customtkinter.CTkCheckBox(master=row02, text="Translate", variable=self.deepl_translate, onvalue=True, offvalue=False)
+        self.check_deepl.grid(row=0, column=4, pady=12, padx=10)
 
         self.transcribe_list = ScrollableLabelButtonFrame(master=self, width=800, command=self.label_button_frame_event, corner_radius=0)
         self.transcribe_list.grid(row=2, column=0, padx=20, pady=(5,20), sticky="s")
@@ -153,7 +159,7 @@ class App(customtkinter.CTk):
             button = self.transcribe_list.button_list[0]
             button.configure(state="disabled")
             button.configure(text="Transcribing")
-            generate_transcript(video, self.language_entry.get(), False, self.generate_docx.get(), self.speaker_diarization.get(), 2)
+            generate_transcript(sourcefile=video,lang=self.language_entry.get(),complex=False, createDOCX=self.generate_docx.get(),speakerDiarization=True, translate=self.deepl_translate.get(), deeplKey=self.deeplKey_entry.get())
             self.remove_job(video)
 
         transcribe_button.configure(text="Transcribe")

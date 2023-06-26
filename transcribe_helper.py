@@ -45,3 +45,24 @@ def condenseSegments(segments:list, sentences:int=1, inprecise:bool=True):
             
     return summarized_segments
 
+def translateSegments(segments:list, translateTargetLanguage:str, deeplKey:str):
+
+    import deepl
+    #correct translation language (EN is deprecated)
+    if(translateTargetLanguage == 'en'):
+            translateTargetLanguage = 'en-gb'
+    
+    translator = deepl.Translator(deeplKey)
+    
+    for speaker in segments:
+        for index, segment in enumerate(speaker.segments):
+        
+            if (len(segment['text']) > 0):
+                translation = translator.translate_text(segment["text"], target_lang=translateTargetLanguage)
+        
+                #rewrite text of segment with translation
+                speaker.segments[index]['text'] = translation.text
+            else:
+                speaker.segments[index]['text'] = ""
+
+    return segments
