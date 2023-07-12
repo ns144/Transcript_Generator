@@ -14,20 +14,22 @@ import os
 from pyannote.audio import Pipeline
 import copy
 
-def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=False, translateTargetLanguage="en-gb", deeplKey=""):
+def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=False, translateTargetLanguage="de", deeplKey=""):
     
     print("GPU: " + str(torch.cuda.is_available()))
     print("Torch version:" + str(torch.__version__))
-    #print("Why tough? "+ str(torch.zeros(1).cuda()))
 
     path = Path(sourcefile)
 
 
     if speakerDiarization:
         print("SPEAKER DIARIZATION")
-        speaker_segments = speaker_diarization(sourcefile)
+        
+        subprocess.call(['ffmpeg', '-i', sourcefile,"-filter:a", "loudnorm=I=-20:LRA=4","-ac", "1","-ar","48000", 'audio.wav', '-y'])
+        sourcefile_norm = 'audio.wav'
+        speaker_segments = speaker_diarization(sourcefile_norm)
         speaker_segments = condenseSpeakers(speaker_segments)
-        transcribed_segments = render_segments(sourcefile, speaker_segments, lang)
+        transcribed_segments = render_segments(sourcefile_norm, speaker_segments, lang)
 
         #save SRT
         targetfile = path.with_suffix('.srt')
@@ -56,7 +58,11 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
         options["max_line_count"] = None
         options["highlight_words"] = False
         writer = get_writer("srt", directory)
-        writer(segments_as_dict, targetfile, options)
+        try:
+            writer(segments_as_dict, targetfile, options)
+        except:
+            print("Attempting to use an older Version of Whisper")
+            writer(segments_as_dict, targetfile)
         print("DONE writing SRT: " + str(targetfile))
         if createDOCX:
             scriptFilename = str(path.with_suffix('.docx'))
@@ -69,10 +75,7 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
 def speaker_diarization(sourcefile):
   
   pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token="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")
-  pipeline.to("cuda")
-  if sourcefile[-3:] != 'wav':
-      subprocess.call(['ffmpeg', '-i', sourcefile,"-ac", "1", 'audio.wav', '-y'])
-      sourcefile = 'audio.wav'
+  pipeline.to(torch.device("cuda"))
 
   # sourcefile = 'audio.wav'
   # apply the pipeline to an audio file
