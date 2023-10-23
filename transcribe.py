@@ -75,8 +75,13 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
 def speaker_diarization(sourcefile):
   
   pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token="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")
-  pipeline.to(torch.device("cuda"))
-
+  try:
+      print("Attempting to use CUDA capable GPU")
+      pipeline.to(torch.device("cuda"))
+  except:
+      print("Using CPU instead")
+      pipeline.to(torch.device("cpu"))
+      
   # sourcefile = 'audio.wav'
   # apply the pipeline to an audio file
   diarization = pipeline(sourcefile, min_speakers=2, max_speakers=8)

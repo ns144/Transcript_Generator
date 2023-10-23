@@ -83,11 +83,11 @@ class App(customtkinter.CTk):
         self.language_entry = customtkinter.CTkEntry(master=row02, placeholder_text="language")
         self.language_entry.grid(row=0, column=2,pady=20, padx=10)
 
-        self.generate_docx = tkinter.BooleanVar(False)
+        self.generate_docx = tkinter.BooleanVar(self.master, False)
         self.check_docx = customtkinter.CTkCheckBox(master=row02, text="Generate Docx", variable=self.generate_docx, onvalue=True, offvalue=False)
         self.check_docx.grid(row=0, column=3, pady=12, padx=10)
 
-        self.deepl_translate = tkinter.BooleanVar(False)
+        self.deepl_translate = tkinter.BooleanVar(self.master, False)
         self.check_deepl = customtkinter.CTkCheckBox(master=row02, text="Translate", variable=self.deepl_translate, onvalue=True, offvalue=False)
         self.check_deepl.grid(row=0, column=4, pady=12, padx=10)
 
