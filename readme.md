@@ -4,7 +4,7 @@ The Transcript Generator is a standalone Python programm which was used in my Ba
 
 #### Normalization
 
-Throughout the research we discovered that audio and video files with a strong difference in audio levels between speakers lead to a worse performance in speaker diarization and transcription. Therefore a normalization is performed on the file with [FFmpeg](https://ffmpeg.org/). 
+Throughout the research we discovered that audio and video files with a strong difference in audio levels between speakers lead to a worse performance in speaker diarization and transcription. Therefore a normalization is performed on the file with [FFmpeg](https://ffmpeg.org/).
 
 #### Speaker Diarization
 
@@ -14,7 +14,7 @@ https://huggingface.co/pyannote/speaker-diarization
 
 #### Transcription
 
-Ahead of the transcription the spoken language of every individual speaker is analyzed. Then a transcription with [OpenAIs Whisper](https://openai.com/research/whisper) is performed. 
+Ahead of the transcription the spoken language of every individual speaker is analyzed. Then a transcription with [OpenAIs Whisper](https://openai.com/research/whisper) is performed.
 
 #### Translation
 
@@ -24,7 +24,7 @@ The Transcript Generator can translate the transcribed segments in a target lang
 
 The Transcript Generator generates a SRT File and optionally a DOCX File after the transcription is done. The following Image shows an example of a generated DOCX file:
 
-![Sample DOCX File](C:\Users\Niko\AppData\Roaming\Typora\typora-user-images\image-20231026205755140.png)
+![Sample DOCX File](docx.png)
 
 ## Installation
 
