@@ -14,24 +14,32 @@ import os
 from pyannote.audio import Pipeline
 import copy
 
+# Function to create the transcription
 def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=False, translateTargetLanguage="de", deeplKey=""):
     
+    # Check if a CUDA capable GPU is available
+    # This will improve the performance significantly
     print("GPU: " + str(torch.cuda.is_available()))
     print("Torch version:" + str(torch.__version__))
 
     path = Path(sourcefile)
 
-
+    # speaker diarization = seperation of the audio in speaker segments
     if speakerDiarization:
         print("SPEAKER DIARIZATION")
-        
+        # convert the input file to a wav file
+        # additionally a normalization of the file is performed this will improve the transcription and the speaker diarization
         subprocess.call(['ffmpeg', '-i', sourcefile,"-filter:a", "loudnorm=I=-20:LRA=4","-ac", "1","-ar","48000", 'audio.wav', '-y'])
         sourcefile_norm = 'audio.wav'
+
+        # run speaker diarization
         speaker_segments = speaker_diarization(sourcefile_norm)
+        # speaker parts are combined where multiple segments of a speaker are not interrupted by another speaker 
         speaker_segments = condenseSpeakers(speaker_segments)
+        # transcription of the condensed segments
         transcribed_segments = render_segments(sourcefile_norm, speaker_segments, lang)
 
-        #save SRT
+        # save SRT file
         targetfile = path.with_suffix('.srt')
         name = targetfile.name
         directory = targetfile.parent
@@ -39,7 +47,9 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
         translated_segments = copy.deepcopy(transcribed_segments)
 
         srt_segments = []
+        # check if translation is required
         if translate:
+            # translation 
             translated_segments = translateSegments(translated_segments, translateTargetLanguage=translateTargetLanguage, deeplKey=deeplKey)
             for segment in translated_segments:
                 for s in segment.segments:
@@ -64,6 +74,8 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
             print("Attempting to use an older Version of Whisper")
             writer(segments_as_dict, targetfile)
         print("DONE writing SRT: " + str(targetfile))
+
+        # create DOCX file
         if createDOCX:
             scriptFilename = str(path.with_suffix('.docx'))
             print("Writing Script DOCX: " + str(scriptFilename))
@@ -72,9 +84,12 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
 
     print("SPEAKER DIARIZATION done...")
 
+# speaker diarization = seperation of the audio in speaker segments
 def speaker_diarization(sourcefile):
   
+  # usage of pyannote pretrained model for speaker diarization
   pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token="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")
+  # check if CUDA capable GPU is available
   try:
       print("Attempting to use CUDA capable GPU")
       pipeline.to(torch.device("cuda"))
@@ -86,21 +101,14 @@ def speaker_diarization(sourcefile):
   # apply the pipeline to an audio file
   diarization = pipeline(sourcefile, min_speakers=2, max_speakers=8)
 
-  #print(diarization)
-
   speaker_segments = []
-
+  
   for speech_turn, track, speaker in diarization.itertracks(yield_label=True):
     print(f"{speech_turn.start:4.1f} {speech_turn.end:4.1f} {speaker}")
     speaker_segments.append(speaker_segment(speaker,speech_turn.start,speech_turn.end))
-
-  #print(speaker_segments[0].in_point)
   return speaker_segments
 
-  # dump the diarization output to disk using RTTM format
-  #with open("audio.rttm", "w") as rttm:
-  #  diarization.write_rttm(rttm)
-
+# Transcription of the individual segments 
 def render_segments(sourcefile, speaker_segments, lang):
     print("TRANSCRIBING SEGMENTS")
     #load compact model if possible
@@ -114,12 +122,15 @@ def render_segments(sourcefile, speaker_segments, lang):
     languages = {}
 
     for segment in speaker_segments:
+        # render a wav for the current segment for the transcription
         segmentName = "segment_" + str(segment.in_point) + ".wav"
         subprocess.call(['ffmpeg', '-i', sourcefile, '-ss', str(segment.in_point), '-to', str(segment.out_point), segmentName, '-y'])
         
+        # analyze which language the individual speakers speak
         if not segment.speaker in languages:
             languages[segment.speaker] = get_language(segmentName, model, lang)
         
+        # transcription using OpenAI Whisper
         result = model.transcribe(segmentName, language=languages[segment.speaker])
         summarized_segments = condenseSegments(result['segments'], 1)
 
@@ -128,8 +139,6 @@ def render_segments(sourcefile, speaker_segments, lang):
         for s in summarized_segments:
             timecode_corrected_segments.append({'id':s['id'],'start':segment.in_point + s['start'], 'end': segment.in_point+s['end'], 'text': s['text']})
 
-        #print("Original: " +str(summarized_segments))
-        #print(segment.speaker + " said: "+ str(timecode_corrected_segments))
         transcribed_segments.append(transcribed_segment(segment.speaker, timecode_corrected_segments))
         os.remove(segmentName)
         print("DONE RENDERING SPEAKER SEGMENT")
@@ -138,6 +147,7 @@ def render_segments(sourcefile, speaker_segments, lang):
 
     return transcribed_segments
 
+# Returns the language spoken in a segment
 def get_language(segmentName, model, lang):
     audio = whisper.load_audio(segmentName)
     audio = whisper.pad_or_trim(audio)
@@ -147,17 +157,20 @@ def get_language(segmentName, model, lang):
 
     # detect the spoken language
     _, probs = model.detect_language(mel)
+    # check which of the given languages is the most propable
     languages = {"en":probs['en'],"de":probs['de'], lang:probs[lang]}
     print(languages)
     print(max(languages, key=languages.get))
     #print(f"Detected language: {max(probs, key=probs.get)}")
+    # return the most propable language
     return max(languages, key=languages.get)
-    
+
+# speaker parts are combined where multiple segments of a speaker are not interrupted by another speaker 
 def condenseSpeakers(speaker_segments):
     condensedSpeakers = []
 
     latest_timestamp = 0
-
+    
     for segment in speaker_segments:
 
         if len(condensedSpeakers) !=0:
@@ -184,58 +197,3 @@ def condenseSpeakers(speaker_segments):
 
 
     return condensedSpeakers
-
-#def speaker_diarization(segments, sourcefile, num_speakers):
-#    import pyannote.audio
-#    from pyannote.audio.pipelines.speaker_verification import PretrainedSpeakerEmbedding
-#    from pyannote.audio import Audio
-#    from pyannote.core import Segment
-#
-#    import wave
-#    import contextlib
-#
-#    from sklearn.cluster import AgglomerativeClustering
-#    import numpy as np
-#    embedding_model = PretrainedSpeakerEmbedding( "speechbrain/spkrec-ecapa-voxceleb", device=torch.device("cpu"))
-#
-#    if sourcefile[-3:] != 'wav':
-#        subprocess.call(['ffmpeg', '-i', sourcefile, 'audio.wav', '-y'])
-#        sourcefile = 'audio.wav'
-#
-#    with contextlib.closing(wave.open(sourcefile,'r')) as f:
-#        frames = f.getnframes()
-#        rate = f.getframerate()
-#        duration = frames / float(rate)
-#
-#    audio = Audio()
-#
-#    def segment_embedding(segment):
-#      start = segment["start"]
-#      # Whisper overshoots the end timestamp in the last segment
-#      end = min(duration, segment["end"])
-#      clip = Segment(start, end)
-#      waveform, sample_rate = audio.crop(sourcefile, clip)
-#      return embedding_model(waveform[None])
-#    
-#    embeddings = np.zeros(shape=(len(segments), 192))
-#
-#    for i, segment in enumerate(segments):
-#      embeddings[i] = segment_embedding(segment)
-#
-#    embeddings = np.nan_to_num(embeddings)
-#
-#    clustering = AgglomerativeClustering(num_speakers).fit(embeddings)
-#    labels = clustering.labels_
-#    for i in range(len(segments)):
-#      segments[i]["speaker"] = 'SPEAKER ' + str(labels[i] + 1)
-#
-#    def time(secs):
-#        return datetime.timedelta(seconds=round(secs))
-#
-#    f = open("transcript.txt", "w")
-#
-#    for (i, segment) in enumerate(segments):
-#      if i == 0 or segments[i - 1]["speaker"] != segment["speaker"]:
-#        f.write("\n" + segment["speaker"] + ' ' + str(time(segment["start"])) + '\n')
-#      f.write(segment["text"][1:] + ' ')
-#    f.close()

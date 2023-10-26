@@ -6,17 +6,21 @@ import uuid
 from pathlib import Path
 
 
-
+# Function to write the transcript in a DOCX file
 def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:str, sourcefile="", translated=False):
+    # DIN A4 page setup
     document = Document()
     document.sections[0].page_width = Mm(210)
     document.sections[0].page_height = Mm(297)
+
+    # Document header
     document.add_heading('Transcription', 0)
     p = document.add_paragraph('File:  ' + Path(sourcefile).name)
 
     latest_timestamp = 0
     latest_index = 0
 
+    # initialize table
     table = document.add_table(rows=1, cols=4)
     table.style = document.styles['Table Grid']
     hdr_cells = table.rows[0].cells
@@ -45,11 +49,10 @@ def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:
     run.bold = True
     paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
+    # add the speaker segments to the table
     for index_speaker,speaker in enumerate(speaker_segments):
 
         if len(speaker.segments) != 0:
-            
-            #speaker_name = document.add_paragraph(speaker.speaker)
 
             speaker_name = table.add_row()
             run = speaker_name.cells[0].paragraphs[0].add_run(speaker.speaker)
@@ -63,21 +66,9 @@ def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:
             start = 0
             end = 0
 
-
-
-            #translation_size = len(translatedSegments)
-            #translationAvailable = translation_size > 0
-
-
-
             for index, s in enumerate(speaker.segments):
 
-                #start = latest_timestamp+format_timestamp(segment['start'],True,':')
                 start = format_timestamp(s['start'],True,':')
-
-                #Add translated text
-                #if (translationAvailable and index <= translation_size-1):
-                #    trans_text = translatedSegments[index]['text']
 
                 end = format_timestamp(s['end'],True,':')
 
@@ -88,6 +79,7 @@ def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:
                 row_cells[1].text = start + " - " + end
                 row_cells[2].text = s['text']
 
+                # When a translation is available add it into the table
                 if translated:
                     trans_text = translation.segments[index]['text']
 
@@ -103,6 +95,7 @@ def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:
     run = paragraph.add_run('This transcript was generated automatically and needs further correction. Please ensure to have a translator check the content against the original audio.')
     run.italic = True   
     
+    # When a file with the filename already exists, a uuid is added to the filename
     try:
         document.save(scriptFilename)
     except:
@@ -111,6 +104,7 @@ def speakersToDoc(speaker_segments:list,translated_segments:list,scriptFilename:
         document.save(scriptFilename) #try again
 
     return scriptFilename
+
 
 def transcriptToDoc(segments:list, translatedSegments:list, scriptFilename:str, sourcefile=""):
 

@@ -1,12 +1,14 @@
 import json
 import os
- 
+
+# Writes the content of a python dictionary into a json file
 def write_json(dictionary, filename):
     with open(filename, "w") as outfile:
         json.dump(dictionary, outfile)
         
-
+# Retrieves the content of a json file
 def read_json(filename):
+    # check if file exists
     if(os.path.isfile(filename)):
         with open(filename, 'r') as openfile:
         
@@ -19,11 +21,3 @@ def read_json(filename):
         
     else:
         return []
-#
-#rL = ['C:/Users/NikolasS/Documents/Drone/DJI_0262.MP4', 'C:/Users/NikolasS/Documents/Drone/DJI_0263.MP4', 'C:/Users/NikolasS/Documents/Drone/DJI_0264-001.MP4', 'C:/Users/NikolasS/Documents/Drone/DJI_0265.MP4', 'C:/Users/NikolasS/Documents/Drone/DJI_0266-002.MP4', 'C:/Users/NikolasS/Documents/Drone/DJI_0267.MP4']
-#
-#write_json(rL, 'sample.json')
-#
-#
-#print(read_json('sample.json'))
-#

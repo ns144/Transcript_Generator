@@ -1,5 +1,6 @@
 import re
 
+# condense transcribed words into full sentences
 def condenseSegments(segments:list, sentences:int=1, inprecise:bool=True):
     segments_count = len(segments)
     summarized_segments = []
@@ -45,6 +46,7 @@ def condenseSegments(segments:list, sentences:int=1, inprecise:bool=True):
             
     return summarized_segments
 
+# translation of transcribed segments using deepL
 def translateSegments(segments:list, translateTargetLanguage:str, deeplKey:str):
 
     import deepl

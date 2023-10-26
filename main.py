@@ -10,6 +10,7 @@ from transcribe import generate_transcript
 render_queue = []
 transcribe_list_json = "transcribeList.json"
 
+# Class for the transcribe queue
 class ScrollableLabelButtonFrame(customtkinter.CTkScrollableFrame):
     def __init__(self, master, command=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -39,8 +40,9 @@ class ScrollableLabelButtonFrame(customtkinter.CTkScrollableFrame):
                 self.button_list.remove(button)
                 return
 
+# Main UI Class
 class App(customtkinter.CTk):
-
+    # Initialization of the UI
     def __init__(self):
         super().__init__()
         self.title("Transcript Generator")
@@ -94,7 +96,7 @@ class App(customtkinter.CTk):
         self.transcribe_list = ScrollableLabelButtonFrame(master=self, width=800, command=self.label_button_frame_event, corner_radius=0)
         self.transcribe_list.grid(row=2, column=0, padx=20, pady=(5,20), sticky="s")
 
-
+    # add a task to the transcribe queue
     def add_job(self, file, cache=True):
         render_queue.append(file)
         self.transcribe_list.add_item(file)
@@ -102,39 +104,45 @@ class App(customtkinter.CTk):
             self.add_to_cache(file)
         self.label_queue.configure(text="Transcribe Queue: " + str(len(render_queue)) +" Clips" )
 
+    # remove a task from the transcribe queue
     def remove_job(self, file):
         render_queue.remove(file)
         self.transcribe_list.remove_item(file)
         self.remove_from_cache(file)
         self.label_queue.configure(text="Transcribe Queue: " + str(len(render_queue)) +" Clips" )
 
+    # if the remove button is pressed, remove item from list
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
         self.remove_job(item)
 
+    # opens an explorer window to select files for transcription
     def filenames_function(self):
         files = tkinter.filedialog.askopenfilenames()
         for f in files:
             self.add_job(f)
         print(render_queue)
 
-
+    # opens the json file for the transcribe queue and loads its tasks into the queue
     def read_cache(self):
         cache_tasks = read_json(transcribe_list_json)
         for task in cache_tasks:
             self.add_job(task, False)
 
+    # adds a task to the transcribe queue json file
     def add_to_cache(self, job):
         cache_tasks = read_json(transcribe_list_json)
         cache_tasks.append(job)
         write_json(cache_tasks, transcribe_list_json)
-    
+
+    # removes a task from the transcribe queue json file
     def remove_from_cache(self, job):
         cache_tasks = read_json(transcribe_list_json)
         cache_tasks.remove(job)
         write_json(cache_tasks, transcribe_list_json)
         self.transcribe_list.remove_item(job)
 
+    # function to start and stop transcription
     def transcribe_button_action(self):
         if self.transcribe_thread == True:
             self.transcribe_thread = False
@@ -143,12 +151,13 @@ class App(customtkinter.CTk):
         else:
             self.transcribe()
 
-
+    # function to launch a seperate thread for the transcription function
     def transcribe(self):
         thread = Thread(target=self.transcribing)
         self.transcribe_thread = True
         thread.start()
 
+    # Transcription of the items in the queue
     def transcribing(self):
         transcribe_button = self.transcribe_button
         transcribe_button.configure(text="Stop")
