@@ -1,42 +1,34 @@
+# Transcript Generator
+
 ## Installation
 
-### Download and install *Python for Windows* (>3.9.5).
+### Download and install _Python for Windows_ (>3.9.5).
 
 Normally, when opening a Command Shell in Windows and typing
 
->python
+> python
 
 it should kick in and install Python via the Windows App Store.
 
 Manually: https://www.python.org/downloads/
 
-### Download and install *Git for Windows*
+### Download and install _Git for Windows_
 
->winget install --id Git.Git -e --source winget
+> winget install --id Git.Git -e --source winget
 
-### Clone the repository via git into a folder 
+### Clone the repository via git into a folder
 
+### Run the install.bat file
 
+This will install the required dependencies.
 
-### Download the current version of FFMPEG and place it in the folder
+### Initial use
 
-https://github.com/BtbN/FFmpeg-Builds/releases
-You have to place the files ffmpeg.exe AND ffprobe.exe into the folder.
+When running the Transcript Generator for the first time you need to launch it with admin privileges to download the pretrained model from huggingface for the speaker diarization.
 
-### Setup and activate a virtual environment
+### UI
 
->python -m venv env \
->cd env\Scripts \
->activate
+![Showcase of the User Interface](ui.png)
 
-### Update PIP to most current version
-
-It is necessary to run pip in the most current version, so 
-
->python.exe -m pip install --upgrade pip
-
-#### Install dependencies
-
-To install the dependencies use the requirements.txt file by using 
-
->pip install -r requirements.txt
+After adding files to the queue you can select whether you want to generate a DOCX file as well or just a SRT File.
+To use the translation feature you will need to enter a Deepl API key.
