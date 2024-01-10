@@ -13,6 +13,8 @@ import torch
 import os
 from pyannote.audio import Pipeline
 import copy
+from pydub import AudioSegment
+import numpy as np
 
 # Function to create the transcription
 def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=False, speakerDiarization=False, num_speakers=2, write_srt=False, translate=False, translateTargetLanguage="de", deeplKey=""):
@@ -29,7 +31,7 @@ def generate_transcript(sourcefile:str, lang='en', complex=False, createDOCX=Fal
         print("SPEAKER DIARIZATION")
         # convert the input file to a wav file
         # additionally a normalization of the file is performed this will improve the transcription and the speaker diarization
-        subprocess.call(['ffmpeg', '-i', sourcefile,"-filter:a", "loudnorm=I=-20:LRA=4","-ac", "1","-ar","48000", 'audio.wav', '-y'])
+        subprocess.call(['ffmpeg', '-i', sourcefile,"-filter:a", "loudnorm=I=-20:LRA=4","-ac", "1","-ar","48000", 'audio.wav', '-y', '-loglevel', "quiet"])
         sourcefile_norm = 'audio.wav'
 
         # run speaker diarization
@@ -121,17 +123,33 @@ def render_segments(sourcefile, speaker_segments, lang):
 
     languages = {}
 
+    # load audio 
+    audio = AudioSegment.from_file(sourcefile,format="wav")
+
     for segment in speaker_segments:
-        # render a wav for the current segment for the transcription
-        segmentName = "segment_" + str(segment.in_point) + ".wav"
-        subprocess.call(['ffmpeg', '-i', sourcefile, '-ss', str(segment.in_point), '-to', str(segment.out_point), segmentName, '-y'])
+        print("Transcription of Audio from: ", str(segment.in_point)+" to: "+str(segment.out_point))
+
+        # Slice Audio with pydup
+        segment_in = int(segment.in_point*1000)
+        segment_out = int(segment.out_point*1000)
+        segmentAudio = audio[segment_in:segment_out]
+
+        ## convert to expected format
+        if segmentAudio.frame_rate != 16000: # 16 kHz
+            segmentAudio = segmentAudio.set_frame_rate(16000)
+        if segmentAudio.sample_width != 2:   # int16
+            segmentAudio = segmentAudio.set_sample_width(2)
+        if segmentAudio.channels != 1:       # mono
+            segmentAudio = segmentAudio.set_channels(1)        
+        arr = np.array(segmentAudio.get_array_of_samples())
+        arr = arr.astype(np.float32)/32768.0
         
         # analyze which language the individual speakers speak
         if not segment.speaker in languages:
-            languages[segment.speaker] = get_language(segmentName, model, lang)
+            languages[segment.speaker] = get_language(arr, model, lang)
         
         # transcription using OpenAI Whisper
-        result = model.transcribe(segmentName, language=languages[segment.speaker])
+        result = model.transcribe(arr, language=languages[segment.speaker])
         summarized_segments = condenseSegments(result['segments'], 1)
 
         timecode_corrected_segments = []
@@ -140,7 +158,6 @@ def render_segments(sourcefile, speaker_segments, lang):
             timecode_corrected_segments.append({'id':s['id'],'start':segment.in_point + s['start'], 'end': segment.in_point+s['end'], 'text': s['text']})
 
         transcribed_segments.append(transcribed_segment(segment.speaker, timecode_corrected_segments))
-        os.remove(segmentName)
         print("DONE RENDERING SPEAKER SEGMENT")
 
         languages = {}
@@ -149,8 +166,7 @@ def render_segments(sourcefile, speaker_segments, lang):
 
 # Returns the language spoken in a segment
 def get_language(segmentName, model, lang):
-    audio = whisper.load_audio(segmentName)
-    audio = whisper.pad_or_trim(audio)
+    audio = whisper.pad_or_trim(segmentName)
 
     # make log-Mel spectrogram and move to the same device as the model
     mel = whisper.log_mel_spectrogram(audio).to(model.device)

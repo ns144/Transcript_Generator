@@ -5,3 +5,4 @@
 ::pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 --no-cache-dir
 ::pip install git+https://github.com/openai/whisper.git
 pip install openai-whisper
+pip install pydub
